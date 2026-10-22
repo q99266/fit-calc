@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>减脂期热量与蛋白速算器</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(160deg,#0f2027,#203a43 60%,#2c5364);color:#eef3f7;min-height:100vh;display:flex;justify-content:center;padding:24px}
+.card{width:100%;max-width:520px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:24px;backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.35)}
+h1{font-size:20px;margin:0 0 4px}.sub{opacity:.65;font-size:13px;margin-bottom:18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{font-size:12px;opacity:.75;display:block;margin-bottom:5px}
+input,select{width:100%;padding:9px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:#fff;font-size:15px}
+.in{grid-column:span 1}.full{grid-column:1/-1}
+button{margin-top:16px;width:100%;padding:12px;border:0;border-radius:10px;background:linear-gradient(90deg,#3ddc97,#2f80ed);color:#06251c;font-weight:700;font-size:15px;cursor:pointer}
+.out{margin-top:18px;display:grid;gap:10px}
+.row{display:flex;justify-content:space-between;align-items:baseline;padding:11px 13px;background:rgba(0,0,0,.22);border-radius:10px;border-left:3px solid #3ddc97}
+.row b{font-size:19px}.row span{font-size:12px;opacity:.7}.k{font-size:13px}
+.tip{margin-top:14px;font-size:12px;opacity:.62;line-height:1.7}
+@media(max-width:420px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>减脂期热量与蛋白速算器</h1>
+<div class="sub">Mifflin-St Jeor 公式 · 训练日/休息日双方案 · 输出可直接贴进饮食记录</div>
+<div class="grid">
+ <div class="in"><label>身高 (cm)</label><input id="h" type="number" value="170"></div>
+ <div class="in"><label>体重 (kg)</label><input id="w" type="number" value="64.4" step="0.1"></div>
+ <div class="in"><label>年龄</label><input id="a" type="number" value="27"></div>
+ <div class="in"><label>性别</label><select id="s"><option value="m">男</option><option value="f">女</option></select></div>
+ <div class="in full"><label>每周训练次数</label>
+  <select id="t"><option value="1">1 次（久坐）</option><option value="3">3 次</option><option value="4">4 次</option><option value="5" selected>5 次</option><option value="6">6 次</option></select></div>
+ <div class="in full"><label>目标</label>
+  <select id="g"><option value="cut" selected>减脂（每周 -0.5% 体重）</option><option value="keep">维持</option><option value="lean">增肌（每周 +0.25% 体重）</option></select></div>
+</div>
+<button id="go">计算</button>
+<div class="out" id="out"></div>
+<div class="tip" id="tip"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+function calc(){
+ const h=+$('h').value,w=+$('w').value,a=+$('a').value,s=$('s').value,t=+$('t').value,g=$('g').value;
+ if(!h||!w||!a) return;
+ const bmr=10*w+6.25*h-5*a+(s==='m'?5:-161);
+ const act=[1.2,1.375,1.45,1.55,1.65,1.72][t];
+ const tdee=bmr*act;
+ let k=0.8; if(g==='keep')k=1; if(g==='lean')k=1.12;
+ const target=Math.round(tdee*k);
+ const rest=Math.round(target*0.95), train=Math.round(target*1.05);
+ const p1=Math.round(w*2.0), p2=Math.round(w*2.4);
+ const days=g==='cut'?[ '训练日 '+train+' kcal / 蛋白 '+p1+'-'+p2+'g','休息日 '+rest+' kcal / 蛋白 '+p1+'g' ]:[ '每日 '+target+' kcal','蛋白 '+p1+'-'+p2+'g' ];
+ $('out').innerHTML=[['基础代谢 BMR',Math.round(bmr)+' kcal'],['每日消耗 TDEE',Math.round(tdee)+' kcal'],['目标热量',target+' kcal'],['蛋白建议',p1+'–'+p2+' g'],['建议方案',days.join(' ｜ ')]]
+  .map(([k2,v])=>`<div class="row"><div><div class="k">${k2}</div><span>${k2==='蛋白建议'?'2.0–2.4 g/kg 保肌区间':'Mifflin-St Jeor × 活动系数'}</span></div><b>${v}</b></div>`).join('');
+ $('tip').textContent='减脂期不建议低于 BMR×1.1；减脂速度控制在每周体重的 0.5%–1% 以内。每 2 周用晨起空腹体重校准一次，掉了超过 1kg/周就加 100–150 kcal。';
+}
+$('go').onclick=calc; ['h','w','a','s','t','g'].forEach(k=>$(k).addEventListener('input',calc)); calc();
+</script>
+</body>
+</html>
